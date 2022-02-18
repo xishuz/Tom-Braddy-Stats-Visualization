@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            margin-right: auto;
+            margin-left: 50px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        .chart-container {
+            max-width: 1050px;
+            font-family: 'Franklin Gothic Medium', Arial, Helvetica, sans-serif;
+        }
+
+        p {
+            width: 600px;
+        }
+
+        svg {
+            background-color: white;
+            overflow: visible;
+        }
+
+        h1 {
+            width: 700px;
+            text-size-adjust: 100px;
+            font-family: 'Franklin Gothic Medium';
+        }
+
+        h2 {
+            width: 700px;
+            text-size-adjust: 80px;
+            font-family: 'Franklin Gothic Medium';
+        }
+
+        .y .tick line {
+            stroke: rgba(0, 0, 0, .2);
+        }
+
+    </style>
+</head>
+
+<body>
+    <div class="chart-container">
+        <h1 class="headline">
+            Charts That Reveal Tom Brady’s Greatness
+        </h1>
+        <h2>
+            Playoff wins by year
+        </h2>
+        <svg width="700px" height="500px" id="svg1"></svg>
+    </div>
+    <div class="chart-container">
+        <h2>
+            Playoff wins by age
+        </h2>
+        <svg width="700px" height="500px" id="svg2"></svg>
+    </div>
+</body>
+
+<script src="https://d3js.org/d3.v6.min.js"></script>
+
+
+<script> // Plot 1: Playoff Wins by Year
+    console.log({ d3 })
+    let svg1 = d3.select("body")
+        .select("#svg1")
+    console.log(svg1)
+
+    d3.tsv("cumulative-stats.tsv").then(data => {    
+        //parsing data
+        data.forEach(function (row) {
+            row.playoff_wins = +row.playoff_wins
+            row.year = +row.year
+        })
+        // defining margins
+        let margin = { top: 20, right: 20, bottom: 30, left:0 },
+            width = 600 - margin.left - margin.right,
+            height = 500 - margin.top - margin.bottom;
+        
+        //setting up x & y axis
+        let x = d3.scaleLinear()
+            .domain([1950, 2021])
+            .range([margin.left, width])
+
+        let y = d3.scaleLinear()
+            .domain([0, 35])
+            .range([height - margin.bottom, margin.top])
+
+        let xAxisSettings = d3.axisBottom(x)
+            .tickSize(6)
+            .tickPadding(6)
+            .ticks(8)
+            .tickFormat(d3.format(""))
+
+        let xAxis = svg1.append("g")
+            .attr("class", "x axis")
+            .call(xAxisSettings)
+            .call(g => g.selectAll(".domain").remove())
+            .attr("transform", `translate(0,${height - margin.bottom})`)
+        
+        let yAxisSettings = d3.axisLeft(y)
+            .tickSize(-width)
+            .tickPadding(5)
+            .ticks(5)
+
+        let yAxis = svg1.append("g")
+            .attr("class", "y axis")
+            .call(yAxisSettings)
+            .call(g => g.selectAll(".domain").remove())
+        
+        let bg = svg1.append("rect")
+            .attr("x", margin.left)
+            .attr("y", 0)
+            .attr("width", width)
+            .attr("height", height-30)
+            .style("fill", "rgba(0,0,0,.04)")
+        
+        let line = d3.line() //define a line function
+            .defined(d => !isNaN(d.playoff_wins))
+            .x(function (d) { return x(d.year) }) //accessing date 
+            .y(function (d) { return y(d.playoff_wins) }) //accesssing value 
+        
+        let grouped_data = d3.group(data, d => d.player_id);
+        console.log(grouped_data)
+        let line_path = svg1.append("g")
+            .selectAll(".line")
+            .data(grouped_data)
+            .join("path")
+            .attr("class", function(d) {
+                return "line " +  d[0]
+            })
+            .attr("d", function(d) {
+                return line(d[1])
+            })
+            .style("fill", "none")
+            .style("stroke", d => {
+                if(d[0] == "BradTo00") {
+                    return "#00BFFF"
+                } 
+                else if(d[0] == "StarBa00" | d[0] == "BradTe00" | d[0] == "TarkFr00" |
+                 d[0] == "MontJo01" | d[0] == "ElwaJo00" ){
+                     return "#211"
+                 }
+                else {
+                    return "#D4D4D4"
+                }
+            })
+            .style("stroke-width", d => {
+                if(d[0] == "BradTo00") {
+                    return "4px"
+                } else {
+                    return "1px"
+                }
+            })        
+            
+            //main tags
+            svg1.append("text")
+                .attr("class", "label")
+                .attr("x", 500) 
+                .attr("y",35)
+                .text("Braddy")
+                .style("fill", "#00BFFF")
+                .style("font", "bold 19px times")
+
+            svg1.append("text")
+                .attr("class", "label")
+                .attr("x", 100)
+                .attr("y", 320)
+                .text("Starr")
+                .style("fill", "#211")
+                .style("font", "14px times")
+
+            svg1.append("text")
+                .attr("class", "label")
+                .attr("x", 170)
+                .attr("y", 270)
+                .text("Bradshaw")
+                .style("fill", "#211")
+                .style("font", "14px times")
+            
+            svg1.append("text")
+                .attr("class", "label")
+                .attr("x", 130)
+                .attr("y", 390)
+                .text("Tarkenton")
+                .style("fill", "#211")
+                .style("font", "14px times")
+            
+            svg1.append("text")
+                .attr("class", "label")
+                .attr("x", 320)
+                .attr("y", 230)
+                .text("Montana")
+                .style("fill", "#211")
+                .style("font", "14px times")
+
+            svg1.append("text")
+                .attr("class", "label")
+                .attr("x", 370)
+                .attr("y", 250)
+                .text("Elway")
+                .style("fill", "#211")
+                .style("font", "14px times")
+    })
+
+</script>
+
+<script> // Plot 2: Playoff Wins by Age
+    console.log(d3)
+    let svg2 = d3.select("body")
+        .select("#svg2")
+    console.log(svg2)
+
+    d3.tsv("cumulative-stats.tsv").then(function(data){ 
+        d3.json("https://static01.nyt.com/newsgraphics/2022/01/29/brady-career/216fe5204c6d41cf312f933f886cc16d35e148e9/player-lookup.json").then(function(data2){
+            //parsing data
+            for(i=0; i<data.length; i++){
+                data[i].year = +data[i].year
+                data[i].playoff_wins = +data[i].playoff_wins
+                Object.keys(data2).forEach(key => {
+                    if (data[i].player_id === key)
+                    {
+                        data[i].age_start = data2[key].age_start;
+                        data[i].year_start = data2[key].year_start;
+                    }
+                data[i].age = data[i].age_start + data[i].year - data[i].year_start
+                })
+            }
+            console.log(data)
+            // defining margins
+            let margin = { top: 20, right: 20, bottom: 30, left:0 },
+                width = 600 - margin.left - margin.right,
+                height = 500 - margin.top - margin.bottom;
+            
+            //setting up x & y axis
+            let x = d3.scaleLinear()
+                .domain([20, 50])
+                .range([margin.left, width])
+
+            let y = d3.scaleLinear()
+                .domain([0, 35])
+                .range([height - margin.bottom, margin.top])
+
+            let xAxisSettings = d3.axisBottom(x)
+                .tickSize(6)
+                .tickPadding(6)
+                .ticks(8)
+                .tickFormat(d3.format(""))
+
+            let xAxis = svg2.append("g")
+                .attr("class", "x axis")
+                .call(xAxisSettings)
+                .call(g => g.selectAll(".domain").remove())
+                .attr("transform", `translate(0,${height - margin.bottom})`)
+            
+            let yAxisSettings = d3.axisLeft(y)
+                .tickSize(-width)
+                .tickPadding(1)
+                .ticks(5)
+
+            let yAxis = svg2.append("g")
+                .attr("class", "y axis")
+                .call(yAxisSettings)
+                .call(g => g.selectAll(".domain").remove())
+            
+            let bg = svg2.append("rect")
+                .attr("x", margin.left)
+                .attr("y", 0)
+                .attr("width", width)
+                .attr("height", height-30)
+                .style("fill", "rgba(0,0,0,.04)")
+            
+                //defining a line function
+            let line = d3.line()
+                .defined(d => !isNaN(d.playoff_wins))
+                .x(function (d) { return x(d.age) }) 
+                .y(function (d) { return y(d.playoff_wins) })
+            
+            let grouped_data = d3.group(data, d => d.player_id);
+            let line_path = svg2.append("g")
+                .selectAll(".line")
+                .data(grouped_data)
+                .join("path")
+                .attr("class", function(d) {
+                    return "line " +  d[0]
+                })
+                .attr("d", function(d) {
+                    return line(d[1])
+                })
+                .style("fill", "none")
+                .style("stroke", d => {
+                    if(d[0] == "BradTo00") {
+                        return "#00BFFF"
+                    } 
+                    else if(d[0] == "StarBa00" | d[0] == "BradTe00" | d[0] == "TarkFr00" |
+                    d[0] == "MontJo01" | d[0] == "ElwaJo00" ){
+                        return "#211"
+                    }
+                    else {
+                        return "#D4D4D4"
+                    }
+                })
+                .style("stroke-width", d => {
+                    if(d[0] == "BradTo00") {
+                        return "4px"
+                    } else {
+                        return "1px"
+                    }
+                })        
+                
+                //main tags
+                svg2.append("text")
+                    .attr("class", "label")
+                    .attr("x", 480) 
+                    .attr("y",35)
+                    .text("Braddy")
+                    .style("fill", "#00BFFF")
+                    .style("font", "bold 19px times")
+
+                svg2.append("text")
+                    .attr("class", "label")
+                    .attr("x", 335)
+                    .attr("y", 320)
+                    .text("Starr")
+                    .style("fill", "#211")
+                    .style("font", "14px times")
+
+                svg2.append("text")
+                    .attr("class", "label")
+                    .attr("x", 280)
+                    .attr("y", 265)
+                    .text("Bradshaw")
+                    .style("fill", "#211")
+                    .style("font", "14px times")
+                
+                svg2.append("text")
+                    .attr("class", "label")
+                    .attr("x", 355)
+                    .attr("y", 355)
+                    .text("Tarkenton")
+                    .style("fill", "#211")
+                    .style("font", "14px times")
+                
+                svg2.append("text")
+                    .attr("class", "label")
+                    .attr("x", 340)
+                    .attr("y", 230)
+                    .text("Montana")
+                    .style("fill", "#211")
+                    .style("font", "14px times")
+
+                svg2.append("text")
+                    .attr("class", "label")
+                    .attr("x", 355)
+                    .attr("y", 260)
+                    .text("Elway")
+                    .style("fill", "#211")
+                    .style("font", "14px times")
+        })
+    })
+
+    
+</script>
